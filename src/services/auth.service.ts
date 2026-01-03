@@ -5,6 +5,40 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface Location {
+  address: string;
+  latitude: number;
+  longitude: number;
+}
+
+export interface Profile {
+  careSeekerProfileId?: string;
+  caregiverProfileId?: string;
+  fullName: string;
+  phoneNumber: string;
+  location: Location;
+  birthDate: string;
+  age: number;
+  gender: string;
+  avatarUrl: string;
+  profileData: any;
+}
+
+export interface LoginResponse {
+  code: string;
+  message: string;
+  token: string;
+  refreshToken: string;
+  accountId: string;
+  email: string;
+  roleName: string;
+  avatarUrl: string;
+  enabled: boolean;
+  nonLocked: boolean;
+  hasProfile: boolean;
+  profile: Profile | null;
+}
+
 export interface LoginResult {
   token?: string;
   user?: any;
@@ -14,8 +48,8 @@ export interface LoginResult {
 function pickToken(raw: any): string | undefined {
   if (!raw || typeof raw !== 'object') return undefined;
   return (
-    raw.accessToken ||
     raw.token ||
+    raw.accessToken ||
     raw.jwt ||
     raw.idToken ||
     raw.data?.accessToken ||
@@ -26,21 +60,66 @@ function pickToken(raw: any): string | undefined {
 
 function pickUser(raw: any): any | undefined {
   if (!raw || typeof raw !== 'object') return undefined;
+  
+  // Handle new API response structure
+  if (raw.accountId && raw.roleName) {
+    // Map roleName to UI format
+    const normalizeRole = (roleName: string): string => {
+      const value = roleName.toString().trim().toUpperCase();
+      if (value.includes('ADMIN')) return 'Admin';
+      if (value.includes('CARE_SEEKER') || value.includes('CARESEEKER')) return 'Care Seeker';
+      if (value.includes('CAREGIVER') || value.includes('CARE_GIVER')) return 'Caregiver';
+      return 'Guest';
+    };
+
+    return {
+      id: raw.accountId,
+      fullName: raw.profile?.fullName || raw.email?.split('@')[0] || '',
+      email: raw.email,
+      role: normalizeRole(raw.roleName),
+      avatarUrl: raw.avatarUrl,
+      phoneNumber: raw.profile?.phoneNumber,
+      location: raw.profile?.location,
+      birthDate: raw.profile?.birthDate,
+      age: raw.profile?.age,
+      gender: raw.profile?.gender,
+      enabled: raw.enabled,
+      nonLocked: raw.nonLocked,
+      hasProfile: raw.hasProfile,
+      profileId: raw.profile?.careSeekerProfileId || raw.profile?.caregiverProfileId,
+      status: raw.enabled && raw.nonLocked ? 'active' : 'pending',
+    };
+  }
+  
   return raw.user || raw.account || raw.profile || raw.data?.user || raw.data?.account || raw.data?.profile;
 }
 
 export async function login(payload: LoginRequest): Promise<LoginResult> {
-  const res = await api.post('/api/auth/login', {
+  const res = await api.post('/api/v1/accounts/login', {
     email: payload.email,
     password: payload.password,
   });
 
+  console.log('🔐 Login response:', res.data);
+
   const raw = res.data;
+  
+  // Check for error response
+  if (res.status >= 400 || raw.code === 'Error' || raw.error) {
+    throw new Error(raw.message || 'Đăng nhập thất bại');
+  }
+
   const token = pickToken(raw);
   const user = pickUser(raw) ?? (raw && typeof raw === 'object' ? raw : undefined);
 
-  // Persist token for subsequent authenticated calls
-  if (token) setAccessToken(token);
+  // Persist both access token and refresh token
+  if (token) {
+    setAccessToken(token);
+  }
+  
+  if (raw.refreshToken) {
+    localStorage.setItem('refreshToken', raw.refreshToken);
+  }
 
   return { token, user, raw };
 }

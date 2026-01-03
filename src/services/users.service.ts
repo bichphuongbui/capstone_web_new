@@ -49,18 +49,18 @@ export const checkEmailExists = async (email: string): Promise<boolean> => {
 // Service để đăng nhập user
 export async function loginUser(email: string, password: string): Promise<User | null> {
   try {
-    // Ưu tiên login bằng Backend thật (POST /api/auth/login)
+    // Ưu tiên login bằng Backend thật (POST /api/v1/accounts/login)
     const { user } = await loginApi({ email, password });
     if (!user || typeof user !== 'object') return null;
 
     // Map dữ liệu backend về format User mà UI đang dùng
     const mapped: User = {
-      id: String((user as any).id ?? (user as any)._id ?? (user as any).userId ?? ''),
+      id: String((user as any).id ?? (user as any)._id ?? (user as any).userId ?? (user as any).accountId ?? ''),
       fullName: String((user as any).fullName ?? (user as any).name ?? (user as any).fullname ?? ''),
       email: String((user as any).email ?? email),
       role: String((user as any).role ?? (user as any).userRole ?? (user as any).type ?? 'Guest'),
       createdAt: String((user as any).createdAt ?? (user as any).created_at ?? new Date().toISOString()),
-      status: (user as any).status,
+      status: (user as any).status ?? ((user as any).enabled && (user as any).nonLocked ? 'active' : 'pending'),
       credentials: (user as any).credentials,
       credentialImage: (user as any).credentialImage ?? (user as any).credential_image,
     };

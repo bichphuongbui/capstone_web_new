@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const DEFAULT_BASE_URL = 'https://elderly-home-care-backend.onrender.com';
+const DEFAULT_BASE_URL = 'http://157.245.155.77:8080';
 
 export const API_BASE_URL =
   ((import.meta as any)?.env?.VITE_API_BASE_URL as string | undefined)?.trim() || DEFAULT_BASE_URL;
