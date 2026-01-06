@@ -648,3 +648,52 @@ export async function getBookingsStatistics(params?: {
     throw error;
   }
 }
+
+export interface UserStatisticsData {
+  totalRegisteredUsers: number;
+  totalUnverifiedUsers: number;
+  totalCaregivers: number;
+  totalCareSeekers: number;
+  unverifiedCaregivers: number;
+  unverifiedCareSeekers: number;
+}
+
+export interface UserStatisticsResponse {
+  status: string;
+  message: string;
+  data: UserStatisticsData;
+}
+
+export async function getUserStatistics(params?: {
+  startDate?: string;
+  endDate?: string;
+}): Promise<UserStatisticsResponse> {
+  try {
+    const res = await api.get('/api/v1/statistics/users', { params });
+    return res.data;
+  } catch (error: any) {
+    console.error('❌ Get user statistics error:', error);
+    throw error;
+  }
+}
+
+export interface CaregiverStatisticsData {
+  totalCaregivers: number;
+  pendingVerificationCaregivers: number;
+}
+
+export interface CaregiverStatisticsResponse {
+  status: string;
+  message: string;
+  data: CaregiverStatisticsData;
+}
+
+export async function getCaregiverStatistics(): Promise<CaregiverStatisticsResponse> {
+  try {
+    const res = await api.get('/api/v1/statistics/caregivers');
+    return res.data;
+  } catch (error: any) {
+    console.error('❌ Get caregiver statistics error:', error);
+    throw error;
+  }
+}
