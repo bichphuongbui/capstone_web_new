@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getUsersByRole, UsersByRoleData, getBookingsStatistics, BookingStatistic } from "../../services/admin.service";
+import { getUsersByRole, UsersByRoleData, getBookingsStatistics, BookingStatistic, getUserStatistics, UserStatisticsData, getCaregiverStatistics, CaregiverStatisticsData } from "../../services/admin.service";
 
 const AdminDashboardPage: React.FC = () => {
   const [usersByRole, setUsersByRole] = useState<UsersByRoleData[]>([]);
@@ -7,16 +7,24 @@ const AdminDashboardPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [bookingsData, setBookingsData] = useState<BookingStatistic[]>([]);
   const [bookingsLoading, setBookingsLoading] = useState<boolean>(true);
+  const [userStats, setUserStats] = useState<UserStatisticsData | null>(null);
+  const [userStatsLoading, setUserStatsLoading] = useState<boolean>(true);
+  const [caregiverStats, setCaregiverStats] = useState<CaregiverStatisticsData | null>(null);
+  const [caregiverStatsLoading, setCaregiverStatsLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
         setBookingsLoading(true);
+        setUserStatsLoading(true);
+        setCaregiverStatsLoading(true);
         
-        const [usersResponse, bookingsResponse] = await Promise.all([
+        const [usersResponse, bookingsResponse, userStatsResponse, caregiverStatsResponse] = await Promise.all([
           getUsersByRole(),
-          getBookingsStatistics()
+          getBookingsStatistics(),
+          getUserStatistics(),
+          getCaregiverStatistics()
         ]);
         
         if (usersResponse.success) {
@@ -27,11 +35,21 @@ const AdminDashboardPage: React.FC = () => {
         if (bookingsResponse.success) {
           setBookingsData(bookingsResponse.data.bookings);
         }
+        
+        if (userStatsResponse.status === 'Success') {
+          setUserStats(userStatsResponse.data);
+        }
+        
+        if (caregiverStatsResponse.status === 'Success') {
+          setCaregiverStats(caregiverStatsResponse.data);
+        }
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
       } finally {
         setLoading(false);
         setBookingsLoading(false);
+        setUserStatsLoading(false);
+        setCaregiverStatsLoading(false);
       }
     };
 
@@ -66,34 +84,215 @@ const AdminDashboardPage: React.FC = () => {
           <div className="pointer-events-none absolute -left-10 -bottom-10 -z-10 h-40 w-40 rounded-full bg-emerald-100 opacity-60 blur-2xl" />
         </div>
 
-        <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-12">
-          {/* Bookings Statistics Chart */}
-          <div className="lg:col-span-7 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-            <h2 className="mb-6 text-lg font-semibold text-gray-900">Thống kê đặt lịch (30 ngày)</h2>
+        <div className="mt-8">
+          {/* User Statistics - Stacked Bar Chart */}
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm max-w-2xl mx-auto">
+            <h2 className="mb-6 text-lg font-semibold text-gray-900">Thống kê người dùng</h2>
             
-            {bookingsLoading ? (
+            {userStatsLoading ? (
               <div className="flex h-64 items-center justify-center">
                 <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-200 border-t-indigo-600"></div>
               </div>
-            ) : bookingsData.length === 0 ? (
-              <div className="flex h-64 items-center justify-center text-gray-400">
-                <p>Chưa có dữ liệu</p>
+            ) : userStats ? (
+              <div className="space-y-6">
+                {/* Legend */}
+                <div className="flex items-center justify-center gap-6 text-sm font-medium">
+                  <div className="flex items-center gap-2">
+                    <div className="h-4 w-4 rounded bg-[#22c55e] shadow-sm"></div>
+                    <span className="text-gray-700">Đã xác thực</span>
+                    <span className="font-bold text-[#22c55e]">{userStats.totalRegisteredUsers - userStats.totalUnverifiedUsers}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="h-4 w-4 rounded bg-[#fbbf24] shadow-sm"></div>
+                    <span className="text-gray-700">Chưa xác thực</span>
+                    <span className="font-bold text-[#f59e0b]">{userStats.totalUnverifiedUsers}</span>
+                  </div>
+                </div>
+
+                {/* Stacked Bar Chart */}
+                <div className="relative bg-white rounded-lg p-4" style={{ height: '420px' }}>
+                  {/* Y-axis labels */}
+                  <div className="absolute left-0 top-6 bottom-12 w-10 flex flex-col-reverse text-xs font-medium text-gray-600">
+                    {(() => {
+                      const max = userStats.totalRegisteredUsers;
+                      const gridCount = 8;
+                      const step = Math.ceil(max / gridCount);
+                      const actualMax = step * gridCount; // Round up để đủ chỗ
+                      const values = [];
+                      for (let i = 0; i <= gridCount; i++) {
+                        values.push(i * step);
+                      }
+                      return values.map((val, idx) => (
+                        <div key={idx} className="text-right pr-2 leading-none" style={{ height: `${100 / gridCount}%` }}>
+                          {val}
+                        </div>
+                      ));
+                    })()}
+                  </div>
+
+                  {/* Chart area */}
+                  <div className="absolute left-10 right-0 top-6 bottom-12 border-l border-b border-gray-300">
+                    {/* Grid lines */}
+                    <div className="absolute inset-0">
+                      {(() => {
+                        const gridCount = 8;
+                        return Array.from({ length: gridCount + 1 }, (_, i) => (
+                          <div 
+                            key={i}
+                            className="absolute left-0 right-0 border-t border-gray-200"
+                            style={{ bottom: `${(i / gridCount) * 100}%` }}
+                          ></div>
+                        ));
+                      })()}
+                    </div>
+
+                    {/* Bars container */}
+                    <div className="absolute inset-0 flex items-end justify-around px-8 pb-0">
+                      {(() => {
+                        const gridCount = 8;
+                        const step = Math.ceil(userStats.totalRegisteredUsers / gridCount);
+                        const maxValue = step * gridCount; // Giá trị max để tính % height
+                        
+                        const bars = [
+                          {
+                            label: 'Tổng',
+                            verified: userStats.totalRegisteredUsers - userStats.totalUnverifiedUsers,
+                            unverified: userStats.totalUnverifiedUsers,
+                            total: userStats.totalRegisteredUsers
+                          },
+                          {
+                            label: 'Người chăm sóc',
+                            verified: userStats.totalCaregivers - userStats.unverifiedCaregivers,
+                            unverified: userStats.unverifiedCaregivers,
+                            total: userStats.totalCaregivers
+                          },
+                          {
+                            label: 'Người cần chăm sóc',
+                            verified: userStats.totalCareSeekers - userStats.unverifiedCareSeekers,
+                            unverified: userStats.unverifiedCareSeekers,
+                            total: userStats.totalCareSeekers
+                          }
+                        ];
+
+                        return bars.map((bar, idx) => {
+                          const verifiedHeight = (bar.verified / maxValue) * 100;
+                          const unverifiedHeight = (bar.unverified / maxValue) * 100;
+                          const totalHeight = verifiedHeight + unverifiedHeight;
+                          
+                          return (
+                            <div key={idx} className="flex flex-col items-center relative" style={{ width: '22%', height: '100%' }}>
+                              {/* Total label on top - positioned absolutely above the bar */}
+                              <div 
+                                className="absolute text-lg font-bold text-[#f97316] z-10"
+                                style={{ 
+                                  bottom: `${totalHeight}%`,
+                                  transform: 'translateY(-8px)'
+                                }}
+                              >
+                                {bar.total}
+                              </div>
+                              
+                              {/* Stacked bar */}
+                              <div className="relative w-full" style={{ height: '100%' }}>
+                                {/* Verified (green) - bottom part */}
+                                <div 
+                                  className="absolute bottom-0 left-0 right-0 bg-[#22c55e] flex items-center justify-center transition-all shadow-sm"
+                                  style={{ 
+                                    height: `${verifiedHeight}%`,
+                                    borderRadius: unverifiedHeight === 0 ? '4px 4px 0 0' : '0'
+                                  }}
+                                >
+                                  {bar.verified > 0 && verifiedHeight > 8 && (
+                                    <span className="text-sm font-bold text-white">
+                                      {bar.verified}
+                                    </span>
+                                  )}
+                                </div>
+                                
+                                {/* Unverified (amber) - top part */}
+                                {bar.unverified > 0 && (
+                                  <div 
+                                    className="absolute left-0 right-0 bg-[#fbbf24] flex items-center justify-center transition-all rounded-t shadow-sm"
+                                    style={{ 
+                                      bottom: `${verifiedHeight}%`,
+                                      height: `${unverifiedHeight}%`
+                                    }}
+                                  >
+                                    {unverifiedHeight > 8 && (
+                                      <span className="text-sm font-bold text-white">
+                                        {bar.unverified}
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        });
+                      })()}
+                    </div>
+                  </div>
+
+                  {/* X-axis labels */}
+                  <div className="absolute left-10 right-0 bottom-0 h-12 flex items-center justify-around px-8">
+                    <div className="text-sm font-semibold text-gray-700 text-center" style={{ width: '22%' }}>Tổng</div>
+                    <div className="text-sm font-semibold text-gray-700 text-center" style={{ width: '22%' }}>Người chăm sóc</div>
+                    <div className="text-sm font-semibold text-gray-700 text-center" style={{ width: '22%' }}>Người cần chăm sóc</div>
+                  </div>
+                </div>
+
+                {/* Summary */}
+                <div className="rounded-xl bg-gradient-to-r from-purple-50 to-purple-100 p-5 border border-purple-200">
+                  <div className="flex items-center justify-between">
+                    <span className="text-base font-bold text-purple-900">Tỷ lệ xác thực</span>
+                    <span className="text-3xl font-bold text-purple-900">
+                      {((userStats.totalRegisteredUsers - userStats.totalUnverifiedUsers) / userStats.totalRegisteredUsers * 100).toFixed(1)}%
+                    </span>
+                  </div>
+                </div>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="flex h-64 items-center justify-center text-gray-400">
+                <p>Không có dữ liệu</p>
+              </div>
+            )}
+          </div>
+
+          {/* Caregiver Statistics - Pie Chart */}
+          <div className="mt-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm max-w-2xl mx-auto">
+            <h2 className="mb-6 text-lg font-semibold text-gray-900">Thống kê người chăm sóc</h2>
+            
+            {caregiverStatsLoading ? (
+              <div className="flex h-96 items-center justify-center">
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-200 border-t-indigo-600"></div>
+              </div>
+            ) : caregiverStats ? (
+              <div className="space-y-6">
+                {/* Legend */}
+                <div className="flex items-center justify-center gap-6 text-sm font-medium">
+                  <div className="flex items-center gap-2">
+                    <div className="h-4 w-4 rounded bg-[#22c55e] shadow-sm"></div>
+                    <span className="text-gray-700">Đã xác thực</span>
+                    <span className="font-bold text-[#22c55e]">
+                      {caregiverStats.totalCaregivers - caregiverStats.pendingVerificationCaregivers}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="h-4 w-4 rounded bg-[#f59e0b] shadow-sm"></div>
+                    <span className="text-gray-700">Chờ xác thực</span>
+                    <span className="font-bold text-[#f59e0b]">
+                      {caregiverStats.pendingVerificationCaregivers}
+                    </span>
+                  </div>
+                </div>
+
                 {/* Pie Chart */}
-                <div className="relative mx-auto h-80 w-80">
+                <div className="relative mx-auto" style={{ width: '320px', height: '320px' }}>
                   <svg viewBox="0 0 200 200" className="h-full w-full">
                     {(() => {
-                      const totals = bookingsData.reduce((acc, b) => ({
-                        pending: acc.pending + b.pending,
-                        confirmed: acc.confirmed + b.confirmed,
-                        inProgress: acc.inProgress + b['in-progress'],
-                        completed: acc.completed + b.completed,
-                        cancelled: acc.cancelled + b.cancelled,
-                      }), { pending: 0, confirmed: 0, inProgress: 0, completed: 0, cancelled: 0 });
-                      
-                      const total = totals.pending + totals.confirmed + totals.inProgress + totals.completed + totals.cancelled;
+                      const verified = caregiverStats.totalCaregivers - caregiverStats.pendingVerificationCaregivers;
+                      const pending = caregiverStats.pendingVerificationCaregivers;
+                      const total = caregiverStats.totalCaregivers;
                       
                       if (total === 0) {
                         return (
@@ -104,11 +303,8 @@ const AdminDashboardPage: React.FC = () => {
                       }
                       
                       const slices = [
-                        { label: 'Chờ xác nhận', value: totals.pending, color: '#eab308' },
-                        { label: 'Đã xác nhận', value: totals.confirmed, color: '#3b82f6' },
-                        { label: 'Đang thực hiện', value: totals.inProgress, color: '#a855f7' },
-                        { label: 'Hoàn thành', value: totals.completed, color: '#22c55e' },
-                        { label: 'Đã hủy', value: totals.cancelled, color: '#ef4444' },
+                        { label: 'Đã xác thực', value: verified, color: '#22c55e' },
+                        { label: 'Chờ xác thực', value: pending, color: '#f59e0b' }
                       ].filter(s => s.value > 0);
                       
                       // If only one slice with 100%, draw a full circle
@@ -120,26 +316,27 @@ const AdminDashboardPage: React.FC = () => {
                               cy="100"
                               r="80"
                               fill={slices[0].color}
-                              className="transition-opacity hover:opacity-80 cursor-pointer"
+                              className="transition-opacity hover:opacity-90 cursor-pointer drop-shadow-lg"
                             />
                             <text
                               x="100"
-                              y="100"
+                              y="95"
                               textAnchor="middle"
                               dominantBaseline="middle"
                               fill="white"
-                              fontSize="20"
+                              fontSize="32"
                               fontWeight="700"
                             >
                               100%
                             </text>
                             <text
                               x="100"
-                              y="120"
+                              y="115"
                               textAnchor="middle"
                               dominantBaseline="middle"
                               fill="white"
-                              fontSize="12"
+                              fontSize="14"
+                              fontWeight="600"
                             >
                               {slices[0].label}
                             </text>
@@ -184,7 +381,7 @@ const AdminDashboardPage: React.FC = () => {
                             // Calculate label position
                             const labelAngle = startAngle + angle / 2;
                             const labelRad = (labelAngle * Math.PI) / 180;
-                            const labelRadius = radius * 0.65;
+                            const labelRadius = radius * 0.6;
                             const labelX = centerX + labelRadius * Math.cos(labelRad);
                             const labelY = centerY + labelRadius * Math.sin(labelRad);
                             
@@ -195,160 +392,62 @@ const AdminDashboardPage: React.FC = () => {
                                 <path
                                   d={pathData}
                                   fill={slice.color}
-                                  className="transition-opacity hover:opacity-80 cursor-pointer"
+                                  className="transition-all hover:opacity-90 cursor-pointer drop-shadow-lg"
+                                  style={{ filter: 'drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1))' }}
                                 />
-                                {/* Percentage label */}
-                                {percentage > 5 && (
-                                  <text
-                                    x={labelX}
-                                    y={labelY}
-                                    textAnchor="middle"
-                                    dominantBaseline="middle"
-                                    fill="white"
-                                    fontSize="14"
-                                    fontWeight="700"
-                                  >
-                                    {percentage.toFixed(0)}%
-                                  </text>
-                                )}
+                                {/* Percentage and count label */}
+                                <text
+                                  x={labelX}
+                                  y={labelY - 8}
+                                  textAnchor="middle"
+                                  dominantBaseline="middle"
+                                  fill="white"
+                                  fontSize="20"
+                                  fontWeight="700"
+                                >
+                                  {percentage.toFixed(0)}%
+                                </text>
+                                <text
+                                  x={labelX}
+                                  y={labelY + 10}
+                                  textAnchor="middle"
+                                  dominantBaseline="middle"
+                                  fill="white"
+                                  fontSize="14"
+                                  fontWeight="600"
+                                >
+                                  ({slice.value})
+                                </text>
                               </g>
                             );
                           })}
                         </>
                       );
-                    })()}
+                    })()})
                   </svg>
                 </div>
 
-                {/* Statistics Summary */}
-                <div className="grid grid-cols-2 gap-3 pt-4 sm:grid-cols-5">
-                  {(() => {
-                    const totals = bookingsData.reduce((acc, b) => ({
-                      pending: acc.pending + b.pending,
-                      confirmed: acc.confirmed + b.confirmed,
-                      inProgress: acc.inProgress + b['in-progress'],
-                      completed: acc.completed + b.completed,
-                      cancelled: acc.cancelled + b.cancelled,
-                    }), { pending: 0, confirmed: 0, inProgress: 0, completed: 0, cancelled: 0 });
-                    
-                    return (
-                      <>
-                        <div className="rounded-lg bg-yellow-50 p-3 text-center">
-                          <div className="text-xs text-yellow-600">Chờ xác nhận</div>
-                          <div className="text-xl font-semibold text-yellow-700">{totals.pending}</div>
-                        </div>
-                        <div className="rounded-lg bg-blue-50 p-3 text-center">
-                          <div className="text-xs text-blue-600">Đã xác nhận</div>
-                          <div className="text-xl font-semibold text-blue-700">{totals.confirmed}</div>
-                        </div>
-                        <div className="rounded-lg bg-purple-50 p-3 text-center">
-                          <div className="text-xs text-purple-600">Đang thực hiện</div>
-                          <div className="text-xl font-semibold text-purple-700">{totals.inProgress}</div>
-                        </div>
-                        <div className="rounded-lg bg-green-50 p-3 text-center">
-                          <div className="text-xs text-green-600">Hoàn thành</div>
-                          <div className="text-xl font-semibold text-green-700">{totals.completed}</div>
-                        </div>
-                        <div className="rounded-lg bg-red-50 p-3 text-center">
-                          <div className="text-xs text-red-600">Đã hủy</div>
-                          <div className="text-xl font-semibold text-red-700">{totals.cancelled}</div>
-                        </div>
-                      </>
-                    );
-                  })()}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* User Distribution Chart */}
-          <div className="lg:col-span-5 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-            <h2 className="mb-6 text-lg font-semibold text-gray-900">Phân bố người dùng theo vai trò</h2>
-            
-            {loading ? (
-              <div className="flex h-64 items-center justify-center">
-                <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-200 border-t-indigo-600"></div>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {/* Donut Chart */}
-                <div className="relative mx-auto h-64 w-64">
-                  <svg viewBox="0 0 200 200" className="h-full w-full">
-                    {usersByRole.map((user, index) => {
-                      const previousPercentages = usersByRole
-                        .slice(0, index)
-                        .reduce((sum, u) => sum + parseFloat(u.percentage), 0);
-                      const percentage = parseFloat(user.percentage);
-                      
-                      // Calculate angles
-                      const startAngle = (previousPercentages / 100) * 360 - 90; // -90 to start from top
-                      const endAngle = ((previousPercentages + percentage) / 100) * 360 - 90;
-                      
-                      // Convert to radians
-                      const startRad = (startAngle * Math.PI) / 180;
-                      const endRad = (endAngle * Math.PI) / 180;
-                      
-                      // Arc parameters
-                      const outerRadius = 85;
-                      const innerRadius = 55;
-                      const centerX = 100;
-                      const centerY = 100;
-                      
-                      // Calculate points for outer arc
-                      const x1 = centerX + outerRadius * Math.cos(startRad);
-                      const y1 = centerY + outerRadius * Math.sin(startRad);
-                      const x2 = centerX + outerRadius * Math.cos(endRad);
-                      const y2 = centerY + outerRadius * Math.sin(endRad);
-                      
-                      // Calculate points for inner arc
-                      const x3 = centerX + innerRadius * Math.cos(endRad);
-                      const y3 = centerY + innerRadius * Math.sin(endRad);
-                      const x4 = centerX + innerRadius * Math.cos(startRad);
-                      const y4 = centerY + innerRadius * Math.sin(startRad);
-                      
-                      // Large arc flag
-                      const largeArc = percentage > 50 ? 1 : 0;
-                      
-                      // Create path
-                      const pathData = [
-                        `M ${x1} ${y1}`,
-                        `A ${outerRadius} ${outerRadius} 0 ${largeArc} 1 ${x2} ${y2}`,
-                        `L ${x3} ${y3}`,
-                        `A ${innerRadius} ${innerRadius} 0 ${largeArc} 0 ${x4} ${y4}`,
-                        'Z'
-                      ].join(' ');
-
-                      return (
-                        <path
-                          key={user.role}
-                          d={pathData}
-                          fill={roleColors[user.role] || '#6b7280'}
-                          className="transition-opacity hover:opacity-80"
-                        />
-                      );
-                    })}
-                  </svg>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <div className="text-3xl font-bold text-gray-900">{totalUsers}</div>
-                    <div className="text-sm text-gray-500">Tổng số</div>
+                {/* Summary */}
+                <div className="rounded-xl bg-gradient-to-r from-emerald-50 to-emerald-100 p-5 border border-emerald-200">
+                  <div className="flex items-center justify-between">
+                    <span className="text-base font-bold text-emerald-900">Tổng số người chăm sóc</span>
+                    <span className="text-3xl font-bold text-emerald-900">
+                      {caregiverStats.totalCaregivers}
+                    </span>
+                  </div>
+                  <div className="mt-2 flex items-center justify-between text-sm">
+                    <span className="text-emerald-700">Tỷ lệ đã xác thực</span>
+                    <span className="text-lg font-bold text-emerald-700">
+                      {caregiverStats.totalCaregivers > 0 
+                        ? (((caregiverStats.totalCaregivers - caregiverStats.pendingVerificationCaregivers) / caregiverStats.totalCaregivers) * 100).toFixed(1)
+                        : 0}%
+                    </span>
                   </div>
                 </div>
-
-                {/* Legend */}
-                <div className="space-y-2 pt-4">
-                  {usersByRole.map((user) => (
-                    <div key={user.role} className="flex items-center justify-between rounded-lg bg-gray-50 px-4 py-2">
-                      <div className="flex items-center gap-3">
-                        <div className={`h-3 w-3 rounded-full ${roleBgColors[user.role] || 'bg-gray-500'}`}></div>
-                        <span className="text-sm font-medium text-gray-700">{user.label}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold text-gray-900">{user.count}</span>
-                        <span className="text-xs text-gray-500">({user.percentage}%)</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+              </div>
+            ) : (
+              <div className="flex h-96 items-center justify-center text-gray-400">
+                <p>Không có dữ liệu</p>
               </div>
             )}
           </div>
