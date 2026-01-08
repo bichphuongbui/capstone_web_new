@@ -127,6 +127,91 @@ export interface GetCaregiverProfilesResponse {
   totalPages: number;
 }
 
+// New types for pending verification caregivers
+export interface PendingCaregiver {
+  caregiverProfileId: string;
+  fullName: string;
+  phoneNumber: string;
+  location: {
+    address: string;
+    latitude: number;
+    longitude: number;
+    service_radius_km?: number;
+  };
+  bio: string;
+  isVerified: boolean;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  rejectionReason: string | null;
+  isNeededReviewCertificate: boolean;
+  acceptedAt: string | null;
+  declinedAt: string | null;
+  reviewedBy: string | null;
+  birthDate: string;
+  age: number;
+  gender: 'MALE' | 'FEMALE' | 'OTHER';
+  profileData: {
+    preferences?: {
+      elderly_age_preference?: {
+        max_age: number;
+        min_age: number;
+      };
+      preferred_health_status?: string;
+    };
+    free_schedule?: {
+      booked_slots: Array<{
+        date: string;
+        end_time: string;
+        start_time: string;
+      }>;
+      available_all_time: boolean;
+    };
+    ratings_reviews?: {
+      total_reviews: number;
+      overall_rating: number;
+      rating_breakdown: {
+        '1_star': number;
+        '2_star': number;
+        '3_star': number;
+        '4_star': number;
+        '5_star': number;
+      };
+    };
+    years_experience?: number;
+    max_hours_per_week?: number;
+    experience?: string;
+    certifications?: string[];
+    specializations?: string[];
+  };
+  accountId: string;
+  email: string;
+  avatarUrl: string;
+  enabled: boolean;
+  nonLocked: boolean;
+  qualifications: Array<{
+    qualificationId: string;
+    qualificationTypeId: string;
+    qualificationTypeName: string;
+    certificateNumber: string;
+    issuingOrganization: string;
+    issueDate: string;
+    expiryDate: string;
+    certificateUrl: string;
+    isVerified: boolean;
+    status: 'PENDING' | 'APPROVED' | 'REJECTED';
+    rejectionReason: string | null;
+    acceptedAt: string | null;
+    declinedAt: string | null;
+    reviewedBy: string | null;
+    notes: string;
+  }>;
+}
+
+export interface GetPendingCaregiversResponse {
+  status: string;
+  message: string;
+  data: PendingCaregiver[];
+}
+
 export interface GetUsersParams {
   role?: string;
   isActive?: boolean;
@@ -694,6 +779,62 @@ export async function getCaregiverStatistics(): Promise<CaregiverStatisticsRespo
     return res.data;
   } catch (error: any) {
     console.error('❌ Get caregiver statistics error:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get pending verification caregivers
+ * GET /api/v1/verifications/caregivers/pending
+ */
+export async function getPendingVerificationCaregivers(): Promise<GetPendingCaregiversResponse> {
+  try {
+    const res = await api.get('/api/v1/verifications/caregivers/pending');
+    return res.data;
+  } catch (error: any) {
+    console.error('❌ Get pending verification caregivers error:', error);
+    throw error;
+  }
+}
+
+/**
+ * Approve or reject a qualification (certificate)
+ * PUT /api/v1/verifications/qualifications/{qualificationId}
+ */
+export async function verifyQualification(
+  qualificationId: string,
+  action: 'APPROVE' | 'REJECT',
+  rejectionReason?: string
+): Promise<GetPendingCaregiversResponse> {
+  try {
+    const res = await api.put(`/api/v1/verifications/qualifications/${qualificationId}`, {
+      action,
+      rejectionReason,
+    });
+    return res.data;
+  } catch (error: any) {
+    console.error('❌ Verify qualification error:', error);
+    throw error;
+  }
+}
+
+/**
+ * Approve or reject a caregiver profile
+ * PUT /api/v1/verifications/caregivers/{caregiverProfileId}
+ */
+export async function verifyCaregiverProfile(
+  caregiverProfileId: string,
+  action: 'APPROVE' | 'REJECT',
+  rejectionReason?: string
+): Promise<GetPendingCaregiversResponse> {
+  try {
+    const res = await api.put(`/api/v1/verifications/caregivers/${caregiverProfileId}`, {
+      action,
+      rejectionReason,
+    });
+    return res.data;
+  } catch (error: any) {
+    console.error('❌ Verify caregiver profile error:', error);
     throw error;
   }
 }
