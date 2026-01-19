@@ -150,6 +150,9 @@ export interface PendingCaregiver {
   age: number;
   gender: 'MALE' | 'FEMALE' | 'OTHER';
   profileData: {
+    citizen_id?: string;
+    citizen_id_front_image_url?: string;
+    citizen_id_back_image_url?: string;
     preferences?: {
       elderly_age_preference?: {
         max_age: number;
@@ -163,7 +166,7 @@ export interface PendingCaregiver {
         end_time: string;
         start_time: string;
       }>;
-      available_all_time: boolean;
+      available_all_time?: boolean;
     };
     ratings_reviews?: {
       total_reviews: number;
@@ -779,6 +782,69 @@ export async function getCaregiverStatistics(): Promise<CaregiverStatisticsRespo
     return res.data;
   } catch (error: any) {
     console.error('❌ Get caregiver statistics error:', error);
+    throw error;
+  }
+}
+
+// Feedback Dashboard Statistics Types
+export interface FeedbackOverview {
+  targetType: string;
+  totalFeedback: number;
+  averageRating: number;
+}
+
+export interface DetailedCriteria {
+  criteriaName: string;
+  totalFeedback: number;
+  averageRating: number;
+}
+
+export interface CaregiverFeedbackDetails {
+  averageRating: number;
+  totalFeedback: number;
+  detailedCriteria: DetailedCriteria[];
+}
+
+export interface CareSeekerFeedbackDetails {
+  totalFeedback: number;
+  averageRating: number;
+}
+
+export interface ServiceDetails {
+  caregiverDetails: CaregiverFeedbackDetails;
+  careSeekerDetails: CareSeekerFeedbackDetails;
+}
+
+export interface TopCaregiver {
+  caregiverId: string;
+  caregiverName: string;
+  caregiverEmail: string;
+  overallRating: number;
+  totalFeedback: number;
+}
+
+export interface FeedbackDashboardData {
+  overview: FeedbackOverview[];
+  serviceDetails: ServiceDetails;
+  topCaregivers: TopCaregiver[];
+}
+
+export interface FeedbackDashboardResponse {
+  status: string;
+  message: string;
+  data: FeedbackDashboardData;
+}
+
+/**
+ * Get feedback dashboard statistics
+ * GET /api/v1/statistics/feedback
+ */
+export async function getFeedbackDashboardStatistics(): Promise<FeedbackDashboardResponse> {
+  try {
+    const res = await api.get('/api/v1/statistics/feedback');
+    return res.data;
+  } catch (error: any) {
+    console.error('❌ Get feedback dashboard statistics error:', error);
     throw error;
   }
 }
