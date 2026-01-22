@@ -5,6 +5,10 @@ const DEFAULT_BASE_URL = 'http://157.245.155.77:8080';
 export const API_BASE_URL =
   ((import.meta as any)?.env?.VITE_API_BASE_URL as string | undefined)?.trim() || DEFAULT_BASE_URL;
 
+// Debug: Log ra URL đang dùng
+console.log('API_BASE_URL:', API_BASE_URL);
+console.log('VITE_API_BASE_URL env:', (import.meta as any)?.env?.VITE_API_BASE_URL);
+
 export const ACCESS_TOKEN_STORAGE_KEY = 'access_token';
 
 export function getAccessToken(): string | null {
