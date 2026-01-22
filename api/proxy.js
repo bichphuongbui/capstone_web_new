@@ -1,9 +1,10 @@
 // Vercel Serverless Function - Proxy to backend
 export default async function handler(req, res) {
-  const { method, body, headers } = req;
-  const path = req.url.replace('/api/proxy', '');
+  const { method, body, headers, query } = req;
   
-  const backendUrl = `http://157.245.155.77:8080${path}`;
+  // Lấy path từ query parameters được pass từ rewrite
+  const path = query.path ? query.path.join('/') : '';
+  const backendUrl = `http://157.245.155.77:8080/api/${path}`;
   
   try {
     const response = await fetch(backendUrl, {
