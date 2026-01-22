@@ -64,7 +64,7 @@ export interface GetPackagesResult {
  */
 export async function getPackages(params?: GetPackagesParams): Promise<GetPackagesResult> {
   try {
-    console.log('📦 Fetching packages with params:', params);
+    console.log('Fetching packages with params:', params);
 
     const queryParams = new URLSearchParams();
     
@@ -83,7 +83,7 @@ export async function getPackages(params?: GetPackagesParams): Promise<GetPackag
     
     const res = await api.get(url);
 
-    console.log('✅ Get packages response:', res.data);
+    console.log(' Get packages response:', res.data);
 
     const responseData = res.data;
     const data = responseData.data || responseData;
@@ -113,7 +113,7 @@ export async function getPackages(params?: GetPackagesParams): Promise<GetPackag
       totalPages: Math.ceil((data.totalPackages || packages.length) / (params?.limit || 10)),
     };
   } catch (error: any) {
-    console.error('❌ Get packages error:', error);
+    console.error(' Get packages error:', error);
     console.error('Error response:', error.response?.data);
     
     // Return empty result nếu có lỗi
@@ -157,7 +157,7 @@ export interface UpdatePackagePayload {
  */
 export async function createPackage(payload: CreatePackagePayload): Promise<{ success: boolean; message?: string; package?: ServicePackage }> {
   try {
-    console.log('📦 Creating package:', payload);
+    console.log('Creating package:', payload);
     
     // Normalize packageType to uppercase
     const normalizedPayload = {
@@ -166,7 +166,7 @@ export async function createPackage(payload: CreatePackagePayload): Promise<{ su
     };
     
     const res = await api.post('/api/v1/service-packages', normalizedPayload);
-    console.log('✅ Create package response:', res.data);
+    console.log('Create package response:', res.data);
     
     const responseData = res.data;
     
@@ -205,9 +205,9 @@ export async function createPackage(payload: CreatePackagePayload): Promise<{ su
       };
     }
   } catch (error: any) {
-    console.error('❌ Create package error:', error);
-    console.error('❌ Error response:', error.response?.data);
-    console.error('❌ Error status:', error.response?.status);
+    console.error('Create package error:', error);
+    console.error('Error response:', error.response?.data);
+    console.error('Error status:', error.response?.status);
     return {
       success: false,
       message: error.response?.data?.message || error.response?.data?.error || error.message || 'Có lỗi xảy ra khi tạo gói dịch vụ',
@@ -221,9 +221,9 @@ export async function createPackage(payload: CreatePackagePayload): Promise<{ su
  */
 export async function getPackageById(id: string): Promise<{ success: boolean; package?: ServicePackage; message?: string }> {
   try {
-    console.log('📦 Fetching package by ID:', id);
+    console.log('Fetching package by ID:', id);
     const res = await api.get(`/api/v1/public/service-package/${id}`);
-    console.log('✅ Get package by ID response:', res.data);
+    console.log('Get package by ID response:', res.data);
     
     const responseData = res.data;
     const packageData = responseData.data;
@@ -261,7 +261,7 @@ export async function getPackageById(id: string): Promise<{ success: boolean; pa
       message: 'Không tìm thấy thông tin gói dịch vụ',
     };
   } catch (error: any) {
-    console.error('❌ Get package by ID error:', error);
+    console.error(' Get package by ID error:', error);
     return {
       success: false,
       message: error.response?.data?.message || 'Có lỗi xảy ra khi lấy thông tin gói dịch vụ',
@@ -275,7 +275,7 @@ export async function getPackageById(id: string): Promise<{ success: boolean; pa
  */
 export async function updatePackage(id: string, payload: UpdatePackagePayload): Promise<{ success: boolean; message?: string; package?: ServicePackage }> {
   try {
-    console.log('📦 Updating package:', id, payload);
+    console.log('Updating package:', id, payload);
     
     // Normalize packageType to uppercase if provided
     const normalizedPayload = {
@@ -284,14 +284,14 @@ export async function updatePackage(id: string, payload: UpdatePackagePayload): 
     };
     
     const res = await api.put(`/api/v1/service-packages/${id}`, normalizedPayload);
-    console.log('✅ Update package response:', res.data);
+    console.log('Update package response:', res.data);
     
     const responseData = res.data;
     
     if (responseData.status === 'Success' && responseData.data) {
       const packageData = responseData.data;
       
-      // Map response to ServicePackage format
+      // Khai báo biến để lưu dữ liệu gói dịch vụ sau khi map từ API response sang format UI cần.
       const mappedPackage: ServicePackage = {
         servicePackageId: packageData.servicePackageId,
         _id: packageData.servicePackageId,
@@ -323,9 +323,9 @@ export async function updatePackage(id: string, payload: UpdatePackagePayload): 
       };
     }
   } catch (error: any) {
-    console.error('❌ Update package error:', error);
-    console.error('❌ Error response:', error.response?.data);
-    console.error('❌ Error status:', error.response?.status);
+    console.error('Update package error:', error);
+    console.error('Error response:', error.response?.data);
+    console.error('Error status:', error.response?.status);
     return {
       success: false,
       message: error.response?.data?.message || error.response?.data?.error || error.message || 'Có lỗi xảy ra khi cập nhật gói dịch vụ',
@@ -335,13 +335,13 @@ export async function updatePackage(id: string, payload: UpdatePackagePayload): 
 
 /**
  * Toggle package active/block status
- * PUT /api/packages/:id/toggle
+ * PUT /api/packages/:id/toggle=> thừa TỪ CODE CŨ
  */
 export async function togglePackageStatus(id: string): Promise<{ success: boolean; message?: string; package?: ServicePackage }> {
   try {
-    console.log('📦 Toggling package status:', id);
+    console.log('Toggling package status:', id);
     const res = await api.put(`/api/packages/${id}/toggle`);
-    console.log('✅ Toggle package status response:', res.data);
+    console.log('Toggle package status response:', res.data);
     
     return {
       success: true,
@@ -349,7 +349,7 @@ export async function togglePackageStatus(id: string): Promise<{ success: boolea
       package: res.data.package || res.data.data,
     };
   } catch (error: any) {
-    console.error('❌ Toggle package status error:', error);
+    console.error('Toggle package status error:', error);
     return {
       success: false,
       message: error.response?.data?.message || 'Có lỗi xảy ra khi cập nhật trạng thái gói dịch vụ',
@@ -363,17 +363,17 @@ export async function togglePackageStatus(id: string): Promise<{ success: boolea
  */
 export async function deletePackage(id: string): Promise<{ success: boolean; message?: string }> {
   try {
-    console.log('📦 Deleting package:', id);
+    console.log('Deleting package:', id);
     const res = await api.delete(`/api/v1/service-packages/${id}`);
-    console.log('✅ Delete package response:', res.data);
+    console.log('Delete package response:', res.data);
     
     return {
       success: true,
       message: res.data.message || 'Xoá gói dịch vụ thành công',
     };
   } catch (error: any) {
-    console.error('❌ Delete package error:', error);
-    console.error('❌ Error response:', error.response?.data);
+    console.error('Delete package error:', error);
+    console.error('Error response:', error.response?.data);
     return {
       success: false,
       message: error.response?.data?.message || 'Có lỗi xảy ra khi xoá gói dịch vụ',
@@ -387,17 +387,17 @@ export async function deletePackage(id: string): Promise<{ success: boolean; mes
  */
 export async function restorePackage(id: string): Promise<{ success: boolean; message?: string }> {
   try {
-    console.log('📦 Restoring package:', id);
+    console.log('Restoring package:', id);
     const res = await api.patch(`/api/v1/service-packages/${id}/restore`);
-    console.log('✅ Restore package response:', res.data);
+    console.log('Restore package response:', res.data);
     
     return {
       success: true,
       message: res.data.message || 'Khôi phục gói dịch vụ thành công',
     };
   } catch (error: any) {
-    console.error('❌ Restore package error:', error);
-    console.error('❌ Error response:', error.response?.data);
+    console.error('Restore package error:', error);
+    console.error('Error response:', error.response?.data);
     return {
       success: false,
       message: error.response?.data?.message || 'Có lỗi xảy ra khi khôi phục gói dịch vụ',

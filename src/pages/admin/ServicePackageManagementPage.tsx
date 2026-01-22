@@ -71,7 +71,7 @@ const ServicePackageManagementPage: React.FC = () => {
     isActive: true
   });
 
-  const [featureChecks, setFeatureChecks] = useState({
+  const [, setFeatureChecks] = useState({
     basicCare: false,
     personalHygiene: false,
     mealPrep: false,
@@ -83,8 +83,8 @@ const ServicePackageManagementPage: React.FC = () => {
     emergencySupport: false
   });
 
-  const [customFeature, setCustomFeature] = useState("");
-  const [customFeatures, setCustomFeatures] = useState<string[]>([]);
+  const [, setCustomFeature] = useState("");
+  const [, setCustomFeatures] = useState<string[]>([]);
   const [selectedTasks, setSelectedTasks] = useState<Array<{
     serviceTaskId?: string;
     taskName: string;
@@ -125,9 +125,10 @@ const ServicePackageManagementPage: React.FC = () => {
       const mappedPackages: ServicePackage[] = result.packages.map((pkg: APIServicePackage) => {
         // Normalize package type
         let normalizedType: PackageType = 'basic';
-        if (pkg.packageType === 'BASIC' || pkg.packageType === 'basic') normalizedType = 'basic';
-        else if (pkg.packageType === 'PROFESSIONAL' || pkg.packageType === 'professional') normalizedType = 'professional';
-        else if (pkg.packageType === 'ADVANCED' || pkg.packageType === 'premium') normalizedType = 'premium';
+        const pkgType = pkg.packageType?.toUpperCase();
+        if (pkgType === 'BASIC') normalizedType = 'basic';
+        else if (pkgType === 'PROFESSIONAL') normalizedType = 'professional';
+        else if (pkgType === 'ADVANCED' || pkgType === 'PREMIUM') normalizedType = 'premium';
         
         return {
           id: parseInt(pkg.servicePackageId?.slice(-8) || pkg._id?.slice(-8) || '', 16) || Math.random(),
@@ -427,7 +428,7 @@ const ServicePackageManagementPage: React.FC = () => {
         price: parseFloat(formData.price),
         packageType: formData.type.toUpperCase() as 'BASIC' | 'PROFESSIONAL' | 'ADVANCED',
         durationHours: parseInt(formData.duration),
-        note: formData.notes || null,
+        note: formData.notes || undefined,
         qualification: qualification,
         status: formData.isActive ? 'ACTIVE' : 'INACTIVE',
         serviceTasks: selectedTasks.map(task => ({
@@ -476,7 +477,7 @@ const ServicePackageManagementPage: React.FC = () => {
         price: parseFloat(formData.price),
         packageType: formData.type,
         durationHours: parseInt(formData.duration),
-        note: formData.notes || null,
+        note: formData.notes || undefined,
         qualification: qualification,
         serviceTasks: selectedTasks,
       };
@@ -545,9 +546,17 @@ const ServicePackageManagementPage: React.FC = () => {
 
   const getPackageColor = (type: PackageType) => {
     switch (type) {
-      case "basic": return { bg: "#4F9CF9", gradient: "linear-gradient(135deg, #4F9CF9, #3B82F6)" };
-      case "professional": return { bg: "#A855F7", gradient: "linear-gradient(135deg, #A855F7, #9333EA)" };
-      case "premium": return { bg: "#F59E0B", gradient: "linear-gradient(135deg, #F59E0B, #D97706)" };
+      case "basic":
+      case "BASIC":
+        return { bg: "#4F9CF9", gradient: "linear-gradient(135deg, #4F9CF9, #3B82F6)" };
+      case "professional":
+      case "PROFESSIONAL":
+        return { bg: "#A855F7", gradient: "linear-gradient(135deg, #A855F7, #9333EA)" };
+      case "premium":
+      case "ADVANCED":
+        return { bg: "#F59E0B", gradient: "linear-gradient(135deg, #F59E0B, #D97706)" };
+      default:
+        return { bg: "#4F9CF9", gradient: "linear-gradient(135deg, #4F9CF9, #3B82F6)" };
     }
   };
 

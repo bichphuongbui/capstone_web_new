@@ -13,11 +13,11 @@ import {
 } from "../../services/admin.service";
 
 const AdminDashboardPage: React.FC = () => {
-  const [usersByRole, setUsersByRole] = useState<UsersByRoleData[]>([]);
-  const [totalUsers, setTotalUsers] = useState<number>(0);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [bookingsData, setBookingsData] = useState<BookingStatistic[]>([]);
-  const [bookingsLoading, setBookingsLoading] = useState<boolean>(true);
+  const [, setUsersByRole] = useState<UsersByRoleData[]>([]);
+  const [, setTotalUsers] = useState<number>(0);
+  const [, setLoading] = useState<boolean>(true);
+  const [, setBookingsData] = useState<BookingStatistic[]>([]);
+  const [, setBookingsLoading] = useState<boolean>(true);
   const [userStats, setUserStats] = useState<UserStatisticsData | null>(null);
   const [userStatsLoading, setUserStatsLoading] = useState<boolean>(true);
   const [caregiverStats, setCaregiverStats] = useState<CaregiverStatisticsData | null>(null);
@@ -75,18 +75,6 @@ const AdminDashboardPage: React.FC = () => {
 
     fetchData();
   }, []);
-
-  const roleColors: Record<string, string> = {
-    careseeker: '#3b82f6',
-    caregiver: '#f59e0b',
-    admin: '#a855f7',
-  };
-
-  const roleBgColors: Record<string, string> = {
-    careseeker: 'bg-blue-500',
-    caregiver: 'bg-amber-500',
-    admin: 'bg-purple-500',
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/20">
