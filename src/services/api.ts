@@ -26,7 +26,7 @@ export const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
-  },
+  },//Mặc định gửi/nhận dữ liệu dạng JSON
   // Chấp nhận mọi status code (không throw error cho 201, 204, etc.)
   validateStatus: (status) => status >= 200 && status < 500,
 });
@@ -43,7 +43,7 @@ api.interceptors.request.use((config) => {
 // Log response để debug
 api.interceptors.response.use(
   (response) => {
-    console.log('📥 API Response:', {
+    console.log('API Response:', {
       url: response.config.url,
       status: response.status,
       data: response.data,
@@ -51,7 +51,7 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    console.error('❌ API Error:', {
+    console.error('API Error:', {
       url: error.config?.url,
       status: error.response?.status,
       data: error.response?.data,

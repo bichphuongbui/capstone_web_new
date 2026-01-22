@@ -24,13 +24,6 @@ const CaregiverApprovalPage: React.FC = () => {
   const [processingProfile, setProcessingProfile] = useState(false);
   const [notification, setNotification] = useState({ show: false, type: 'success' as 'success' | 'error', message: '' });
 
-  const showNotification = (type: 'success' | 'error', message: string) => {
-    setNotification({ show: true, type, message });
-    setTimeout(() => {
-      setNotification({ show: false, type, message: '' });
-    }, 3000);
-  };
-
   const hideNotification = () => {
     setNotification({ show: false, type: 'success', message: '' });
   };
