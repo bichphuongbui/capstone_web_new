@@ -1,15 +1,10 @@
 import axios from 'axios';
 
-// Tự động dùng /api khi production (HTTPS), dùng trực tiếp backend khi dev (HTTP)
-const isProduction = window.location.protocol === 'https:';
-const DEFAULT_BASE_URL = isProduction ? '/api' : 'http://157.245.155.77:8080';
+// Sau khi backend đã có CORS, dùng trực tiếp backend URL
+const DEFAULT_BASE_URL = 'http://157.245.155.77:8080';
 
 export const API_BASE_URL =
   ((import.meta as any)?.env?.VITE_API_BASE_URL as string | undefined)?.trim() || DEFAULT_BASE_URL;
-
-// Debug: Log ra URL đang dùng
-console.log('🔧 API_BASE_URL:', API_BASE_URL);
-console.log('🔧 Is Production:', isProduction);
 
 export const ACCESS_TOKEN_STORAGE_KEY = 'access_token';
 
