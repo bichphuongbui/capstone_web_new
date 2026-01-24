@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-// Sau khi backend đã có CORS, dùng trực tiếp backend URL
+
 const DEFAULT_BASE_URL = 'https://157.245.155.77.nip.io';
 
 export const API_BASE_URL =

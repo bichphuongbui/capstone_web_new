@@ -49,7 +49,7 @@ export const checkEmailExists = async (email: string): Promise<boolean> => {
 // Service để đăng nhập user
 export async function loginUser(email: string, password: string): Promise<User | null> {
   try {
-    // Ưu tiên login bằng Backend thật (POST /api/v1/accounts/login)
+    // login bằng Backend thật (POST /api/v1/accounts/login)
     const { user } = await loginApi({ email, password });
     if (!user || typeof user !== 'object') return null;
 

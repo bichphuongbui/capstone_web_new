@@ -260,41 +260,8 @@ const LoginPage: React.FC = () => {
                   </svg>
                   Quay về trang chủ
                 </button>
-
-                <button
-                  onClick={() => navigate('/forgot-password')}
-                  type="button"
-                  className="inline-flex items-center justify-center px-4 py-3 border border-gray-300 text-lg font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition-colors"
-                >
-                  Quên mật khẩu
-                </button>
-                
-                <div className="text-center">
-                  <span className="text-gray-600">Chưa có tài khoản? </span>
-                  <button
-                    onClick={() => navigate('/register')}
-                    className="text-primary-600 hover:text-primary-700 font-medium"
-                  >
-                    Đăng ký ngay
-                  </button>
-                </div>
               </div>
             </div>
-          </div>
-
-          {/* Additional info */}
-          <div className="mt-8 text-center">
-            <p className="text-sm text-gray-500">
-              Bằng việc đăng nhập, bạn đồng ý với{' '}
-              <a href="#" className="text-primary-600 hover:text-primary-700">
-                Điều khoản sử dụng
-              </a>{' '}
-              và{' '}
-              <a href="#" className="text-primary-600 hover:text-primary-700">
-                Chính sách bảo mật
-              </a>{' '}
-              của chúng tôi.
-            </p>
           </div>
         </div>
       </div>
