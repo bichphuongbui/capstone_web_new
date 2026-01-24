@@ -64,7 +64,7 @@ const CaregiverApprovalPage: React.FC = () => {
     if (!confirmingQualId) return;
     setShowConfirmDialog(false);
     
-    setProcessingQualId(confirmingQualId);
+    setProcessingQualId(confirmingQualId);//Set trạng thái đang xử lý
     try {
       const response = await verifyQualification(confirmingQualId, 'APPROVE');
       // Update the caregiver data with the new response

@@ -93,7 +93,7 @@ const ServicePackageManagementPage: React.FC = () => {
   
   // Skills and Certificate Groups state
   const [skills, setSkills] = useState<string[]>([]);
-  const [skillInput, setSkillInput] = useState("");
+  //const [skillInput, setSkillInput] = useState("");
   const [certificateGroups, setCertificateGroups] = useState<string[][]>([]);
   const [qualificationTypes, setQualificationTypes] = useState<QualificationType[]>([]);
   const [loadingQualifications, setLoadingQualifications] = useState(false);
@@ -214,7 +214,7 @@ const ServicePackageManagementPage: React.FC = () => {
     setViewingPackageDetails(null);
     setSelectedTasks([]);
     setSkills([]);
-    setSkillInput('');
+    //setSkillInput('');
     setCertificateGroups([]);
     setFormData({
       name: "",
@@ -1185,7 +1185,7 @@ const ServicePackageManagementPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Skills */}
+              {/* Skills 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-3">
                   Kỹ năng yêu cầu
@@ -1237,7 +1237,7 @@ const ServicePackageManagementPage: React.FC = () => {
                     </button>
                   </div>
                 </div>
-              </div>
+              </div>*/}
 
               {/* Certificate Groups */}
               <div>

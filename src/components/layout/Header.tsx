@@ -56,12 +56,6 @@ const Header: React.FC = () => {
             >
               Đăng nhập
             </a>
-            <a
-              href="/register"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors duration-200 shadow-sm"
-            >
-              Đăng ký
-            </a>
           </div>
 
           {/* Hamburger menu button - Mobile */}
@@ -129,13 +123,6 @@ const Header: React.FC = () => {
               onClick={() => setIsMobileMenuOpen(false)}
             >
               Đăng nhập
-            </a>
-            <a
-              href="/register"
-              className="block mx-3 py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-base font-medium text-center transition-colors duration-200"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Đăng ký
             </a>
           </div>
         </div>
